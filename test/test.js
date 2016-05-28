@@ -70,5 +70,16 @@ describe('less-express', function(){
 				.expect(404)
 				.end(done);
 		});
+		it('uses passed LESS options', function(done){
+			request(app)
+				.get('/minified.css')
+				.expect(200)
+				.expect(function(res){
+					if (res.text.match(/MINIFICATION_TEST_TOKEN/) !== null){
+						throw new Error('Passed LESS plugin was not applied.');
+					}
+				})
+				.end(done);
+		});
 	});
 });
