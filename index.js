@@ -1,6 +1,5 @@
 var Promise = require('bluebird');
 var less = require('less');
-var url = require('url');
 var fs = require('fs');
 var _ = require('underscore');
 var LRU = require('lru-cache');
@@ -9,9 +8,12 @@ var CACHE_KEY = function(str){
 	return 'result' + str;
 };
 
+var globalOptions = {}, globalLessOptions = {};
+
 function render(location, lessOpts){
 	return new Promise(function(resolve, reject){
 		fs.readFile(location, 'utf-8', function(err, lessString){
+			if (err && err.code === 'ENOENT') err.status = 404;
 			if (err) return reject(err);
 			less.render(lessString, lessOpts || {})
 				.then(function(result){
@@ -22,57 +24,56 @@ function render(location, lessOpts){
 	});
 }
 
-function statFile(file){
-	return new Promise(function(resolve, reject){
-		fs.stat(file, function(err){
-			if (err && err.code === 'ENOENT'){
-				err.status = 404;
-			}
-			if (err){
-				return reject(err);
-			}
-			resolve(file);
-		});
-	});
-}
+function lessExpress(location, lessOptions, options){
 
-module.exports = function(location, lessOptions, options){
-
-	if (!_.isString(location) && arguments.length < 3){
-		location = null;
-		options = arguments[1];
-		lessOptions = arguments[0];
+	if (!_.isString(location)){
+		throw new Error('You need to pass a `location` parameter to generate a `less-express` middleware function.');
 	}
 
-	options = _.extend({}, options);
-	lessOptions = _.extend({}, lessOptions);
+	var localLessOptions = _.extend({}, globalLessOptions, lessOptions || {});
+	var localOptions = _.extend({}, globalOptions, options || {});
 
-	var cache = (options.cache || process.env.NODE_ENV === 'production')
-		? new LRU({maxAge: _.isFinite(options.cache) ? options.cache : 3600})
-		: null;
+	var localCache = localOptions.cache === false
+		? null
+		: (localOptions.cache || process.env.NODE_ENV === 'production')
+			? new LRU({maxAge: _.isFinite(localOptions.cache) ? localOptions.cache : 0})
+			: null;
 
-	return function(req, res, next){
+	var middleware = function(req, res, next){
 		if (req.method.toLowerCase() !== 'get' && req.method.toLowerCase() !== 'head'){
 			return next();
 		}
 		var result;
-		var localLocation = statFile(location || process.cwd() + url.parse(req.url).pathname.replace(/\.css$/, '.less'));
-
-		localLocation
-			.then(function(location){
-				if (cache){
-					result = cache.get(CACHE_KEY(location));
-					if (result) return Promise.resolve(result);
-				}
-				result = render(location, lessOptions);
-				if (cache) cache.set(CACHE_KEY(location), result);
-				return result;
-			})
-			.then(function(css){
-				res.status(200);
-				res.set('Content-Type', 'text/css');
-				res.send(css);
-			})
-			.catch(next);
+		if (localCache){
+			result = localCache.get(CACHE_KEY(location));
+			if (result) return Promise.resolve(result);
+		}
+		result = render(location, lessOptions).then(function(css){
+			res.set('Content-Type', 'text/css');
+			res.send(css);
+		}).catch(next);
+		if (localCache) localCache.set(CACHE_KEY(location), result);
 	};
+	middleware.options = function(){
+		return _.extend({}, localOptions);
+	};
+	middleware.lessOptions = function(){
+		return _.extend({}, localLessOptions);
+	};
+	middleware.cache = function(){
+		return localCache;
+	};
+	return middleware;
+}
+
+lessExpress.lessOptions = function(newOpts){
+	globalLessOptions = _.extend({}, globalLessOptions, newOpts || {});
+	return globalLessOptions;
 };
+
+lessExpress.options = function(newOpts){
+	globalOptions = _.extend({}, globalOptions, newOpts || {});
+	return globalOptions;
+};
+
+module.exports = lessExpress;
