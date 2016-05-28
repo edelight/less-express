@@ -64,6 +64,13 @@ describe('less-express', function(){
 				.expect(/#ff00ff/)
 				.end(done);
 		});
+		it('can automatically handle files with relative imports', function(done){
+			request(app)
+				.get('/import.css')
+				.expect(200)
+				.expect(/#ff00ff/)
+				.end(done);
+		});
 		it('returns 404 on inexistent files', function(done){
 			request(app)
 				.get('/404.css')

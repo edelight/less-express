@@ -7,6 +7,7 @@ var cleanCSSPlugin = new LessPluginCleanCSS({advanced: true});
 
 app.get('/styles.css', lessExpress('./test/fixtures/simple.less'));
 app.get('/minified.css', lessExpress('./test/fixtures/minified.less', {plugins: [cleanCSSPlugin]}));
+app.get('/import.css', lessExpress('./test/fixtures/import.less'));
 app.get('/404.css', lessExpress('./test/fixtures/404.less'));
 
 app.use(function(err, req, res, next){ //eslint-disable-line no-unused-vars

@@ -24,15 +24,18 @@ function render(location, lessOpts){
 	});
 }
 
+function locationToDir(location){
+	return _.initial(location.split('/')).join('/');
+}
+
 function lessExpress(location, lessOptions, options){
 
 	if (!_.isString(location)){
 		throw new Error('You need to pass a `location` parameter to generate a `less-express` middleware function.');
 	}
 
-	var localLessOptions = _.extend({}, globalLessOptions, lessOptions || {});
+	var localLessOptions = _.extend({paths: [locationToDir(location)]}, globalLessOptions, lessOptions || {});
 	var localOptions = _.extend({}, globalOptions, options || {});
-
 	var localCache = localOptions.cache === false
 		? null
 		: (localOptions.cache || process.env.NODE_ENV === 'production')
@@ -48,7 +51,7 @@ function lessExpress(location, lessOptions, options){
 			result = localCache.get(CACHE_KEY(location));
 			if (result) return Promise.resolve(result);
 		}
-		result = render(location, lessOptions).then(function(css){
+		result = render(location, localLessOptions).then(function(css){
 			res.set('Content-Type', 'text/css');
 			res.send(css);
 		}).catch(next);
