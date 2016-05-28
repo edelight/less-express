@@ -52,8 +52,11 @@ module.exports = function(location, lessOptions, options){
 		: null;
 
 	return function(req, res, next){
+		if (req.method.toLowerCase() !== 'get' && req.method.toLowerCase() !== 'head'){
+			return next();
+		}
 		var result;
-		var localLocation = statFile(location || url.parse(req.url).pathname.replace(/\.css$/, '.less'));
+		var localLocation = statFile(location || process.cwd() + url.parse(req.url).pathname.replace(/\.css$/, '.less'));
 
 		localLocation
 			.then(function(location){
