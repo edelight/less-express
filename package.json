@@ -1,6 +1,6 @@
 {
   "name": "less-express",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "express middleware for artifact free LESS compiling",
   "main": "index.js",
   "scripts": {
@@ -23,9 +23,9 @@
   },
   "homepage": "https://github.com/m90/less-express#readme",
   "dependencies": {
-    "bluebird": "^3.4.0",
     "less": "^2.7.1",
     "lru-cache": "^4.0.1",
+    "promise": "^7.1.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {

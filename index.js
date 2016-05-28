@@ -1,4 +1,4 @@
-var Promise = require('bluebird');
+var Promise = require('promise');
 var less = require('less');
 var fs = require('fs');
 var _ = require('underscore');
@@ -24,17 +24,13 @@ function render(location, lessOpts){
 	});
 }
 
-function locationToDir(location){
-	return _.initial(location.split('/')).join('/');
-}
-
 function lessExpress(location, lessOptions, options){
 
 	if (!_.isString(location)){
 		throw new Error('You need to pass a `location` parameter to generate a `less-express` middleware function.');
 	}
 
-	var localLessOptions = _.extend({paths: [locationToDir(location)]}, globalLessOptions, lessOptions || {});
+	var localLessOptions = _.extend({paths: [_.initial(location.split('/')).join('/')]}, globalLessOptions, lessOptions || {});
 	var localOptions = _.extend({}, globalOptions, options || {});
 	var localCache = localOptions.cache === false
 		? null
@@ -42,14 +38,25 @@ function lessExpress(location, lessOptions, options){
 			? new LRU({maxAge: _.isFinite(localOptions.cache) ? localOptions.cache : 0})
 			: null;
 
+	if (localCache && (process.env.NODE_ENV === 'production' && localOptions.precompile !== false) || localOptions.precompile){
+		localCache.set(CACHE_KEY(location), render(location, localLessOptions));
+	}
+
 	var middleware = function(req, res, next){
 		if (req.method.toLowerCase() !== 'get' && req.method.toLowerCase() !== 'head'){
 			return next();
 		}
+
 		var result;
 		if (localCache){
 			result = localCache.get(CACHE_KEY(location));
-			if (result) return Promise.resolve(result);
+			if (result){
+				return result.then(function(css){
+					res.set('Content-Type', 'text/css');
+					res.send(css);
+				})
+				.catch(next);
+			}
 		}
 		result = render(location, localLessOptions).then(function(css){
 			res.set('Content-Type', 'text/css');
