@@ -40,7 +40,7 @@ app.get('/css/app.css', lessExpress('./public/stylesheets/app.less', lessOptions
 `lessOptions` will be passed through to LESS. See the [LESS documentation](http://lesscss.org/usage/#programmatic-usage) for available configuration. The following `middlewareOptions` are available for the middleware:
 
 - `cache`: TTL in milliseconds that compilation results will be cached. When `true` is passed the cache will keep the initial compilation result infinitely. By default the middleware uses infinite caching in production. If you want to disable this pass `false`.
-- `precompile`: Tell the middleware to precompile the resource on application startup. This is happening per default in production and can be disabled by passing `false`.
+- `precompile`: Tell the middleware to precompile the stylesheet on application startup. This is happening per default in production and can be disabled by passing `false`. If you explicitly set `cache` to `false` this will do nothing.
 
 You can also set global configuration options that will be applied to all calls by using `#lessOptions` and `#options`:
 
