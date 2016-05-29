@@ -1,12 +1,7 @@
-var Promise = require('promise');
 var less = require('less');
 var fs = require('fs');
 var _ = require('underscore');
 var LRU = require('lru-cache');
-
-var CACHE_KEY = function(str){
-	return 'result' + str;
-};
 
 var globalOptions = {}, globalLessOptions = {};
 
@@ -30,8 +25,8 @@ function lessExpress(location, lessOptions, options){
 		throw new Error('You need to pass a `location` parameter to generate a `less-express` middleware function.');
 	}
 
-	var localLessOptions = _.extend({paths: [_.initial(location.split('/')).join('/')]}, globalLessOptions, lessOptions || {});
-	var localOptions = _.extend({}, globalOptions, options || {});
+	var localLessOptions = _.extend({paths: [_.initial(location.split('/')).join('/')]}, globalLessOptions, lessOptions);
+	var localOptions = _.extend({}, globalOptions, options);
 	var localCache = localOptions.cache === false
 		? null
 		: (localOptions.cache || process.env.NODE_ENV === 'production')
@@ -39,17 +34,17 @@ function lessExpress(location, lessOptions, options){
 			: null;
 
 	if (localCache && (process.env.NODE_ENV === 'production' && localOptions.precompile !== false) || localOptions.precompile){
-		localCache.set(CACHE_KEY(location), render(location, localLessOptions));
+		localCache.set(location, render(location, localLessOptions));
 	}
 
-	var middleware = function(req, res, next){
+	return function(req, res, next){
 		if (req.method.toLowerCase() !== 'get' && req.method.toLowerCase() !== 'head'){
 			return next();
 		}
 
 		var result;
 		if (localCache){
-			result = localCache.get(CACHE_KEY(location));
+			result = localCache.get(location);
 			if (result){
 				return result.then(function(css){
 					res.set('Content-Type', 'text/css');
@@ -62,27 +57,18 @@ function lessExpress(location, lessOptions, options){
 			res.set('Content-Type', 'text/css');
 			res.send(css);
 		}).catch(next);
-		if (localCache) localCache.set(CACHE_KEY(location), result);
+		if (localCache) localCache.set(location, result);
 	};
-	middleware.options = function(){
-		return _.extend({}, localOptions);
-	};
-	middleware.lessOptions = function(){
-		return _.extend({}, localLessOptions);
-	};
-	middleware.cache = function(){
-		return localCache;
-	};
-	return middleware;
+
 }
 
 lessExpress.lessOptions = function(newOpts){
-	globalLessOptions = _.extend({}, globalLessOptions, newOpts || {});
+	globalLessOptions = _.extend({}, globalLessOptions, newOpts);
 	return globalLessOptions;
 };
 
 lessExpress.options = function(newOpts){
-	globalOptions = _.extend({}, globalOptions, newOpts || {});
+	globalOptions = _.extend({}, globalOptions, newOpts);
 	return globalOptions;
 };
 

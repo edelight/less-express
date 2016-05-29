@@ -3,9 +3,12 @@
   "version": "0.0.1",
   "description": "express middleware for artifact free LESS compiling",
   "main": "index.js",
+  "engines" : {
+    "node" : ">=0.12"
+  },
   "scripts": {
     "pretest": "eslint .",
-    "test": "export NODE_ENV=production && mocha"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -25,7 +28,6 @@
   "dependencies": {
     "less": "^2.7.1",
     "lru-cache": "^4.0.1",
-    "promise": "^7.1.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
