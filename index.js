@@ -21,7 +21,9 @@ function lessExpress(location, lessOptions, options){
 		? null
 		: (localOptions.cache || process.env.NODE_ENV === 'production')
 			? new LRU({
-				maxAge: _.isFinite(localOptions.cache) ? localOptions.cache : 0
+				length: function(){ return 1; }
+				, max: 100
+				, maxAge: _.isFinite(localOptions.cache) ? localOptions.cache : 0
 			})
 			: null;
 
@@ -50,6 +52,7 @@ function lessExpress(location, lessOptions, options){
 		result = render(location, localLessOptions).then(function(css){
 			res.set('Content-Type', 'text/css');
 			res.send(css);
+			return css;
 		}).catch(next);
 
 		if (localCache) localCache.set(location, result);

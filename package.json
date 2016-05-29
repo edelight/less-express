@@ -1,10 +1,10 @@
 {
   "name": "less-express",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "express middleware for artifact free LESS compiling",
   "main": "index.js",
-  "engines" : {
-    "node" : ">=0.12"
+  "engines": {
+    "node": ">=0.12"
   },
   "scripts": {
     "pretest": "eslint .",

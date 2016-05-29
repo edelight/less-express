@@ -12,14 +12,12 @@ describe('less-express', function(){
 		it('exposes a #lessOptions method for storing globally applied less options', function(){
 			assert(_.isFunction(lessExpress.lessOptions));
 			assert.equal(lessExpress.lessOptions.length, 1);
-			lessExpress.lessOptions({foo: 'bar'});
-			assert.deepEqual(lessExpress.lessOptions(), {foo: 'bar'});
+			assert.deepEqual(lessExpress.lessOptions(), {sourceMap: {sourceMapFileInline: true}});
 		});
 		it('exposes a #options method for globally applied options', function(){
 			assert(_.isFunction(lessExpress.options));
 			assert.equal(lessExpress.options.length, 1);
-			lessExpress.options({foo: 'bar'});
-			assert.deepEqual(lessExpress.options(), {foo: 'bar'});
+			assert.deepEqual(lessExpress.options(), {cache: 360000});
 		});
 		it('throws when invoked without arguments', function(){
 			assert.throws(function(){
@@ -31,29 +29,30 @@ describe('less-express', function(){
 				lessExpress(['zalgo', 'he comes']);
 			});
 		});
+		it('returns a middleware function when called with correct arguments', function(){
+			var middleware = lessExpress('./files/base.less');
+			assert(_.isFunction(middleware));
+			assert.equal(middleware.length, 3);
+		});
 	});
 	describe('configuration precendence', function(){
-		it('applies global options when the key is not set locally', function(){
-			lessExpress.options({opt: '1'});
-			lessExpress.lessOptions({lessOpt: 0});
-			var middleware = lessExpress('location.less');
-			assert.strictEqual(middleware.options().opt, '1');
-			assert.strictEqual(middleware.lessOptions().lessOpt, 0);
+		it('applies global options when the key is not set locally', function(done){
+			request(app)
+				.get('/styles.css')
+				.expect(200)
+				.expect(/sourceMappingURL/)
+				.end(done);
 		});
-		it('applies local options when the key is set locally', function(){
-			var middleware = lessExpress('location.less', {lessOpt: '3'}, {opt: '2'});
-			assert.strictEqual(middleware.options().opt, '2');
-			assert.strictEqual(middleware.lessOptions().lessOpt, '3');
-		});
-	});
-	describe('caching', function(){
-		it('caches results by default when in production', function(){
-			var middleware = lessExpress('location.less');
-			assert(middleware.cache());
-		});
-		it('can skip caching in production by passing false', function(){
-			var middleware = lessExpress('location.less', {}, {cache: false});
-			assert(!middleware.cache());
+		it('applies local options when the key is set locally', function(done){
+			request(app)
+				.get('/no-map.css')
+				.expect(200)
+				.expect(function(res){
+					if (res.text.indexOf('sourceMappingURL') > -1){
+						throw new Error('Local option was not applied.');
+					}
+				})
+				.end(done);
 		});
 	});
 	describe('middleware', function(){
@@ -75,6 +74,12 @@ describe('less-express', function(){
 			request(app)
 				.get('/404.css')
 				.expect(404)
+				.end(done);
+		});
+		it('returns 500 on invalid files', function(done){
+			request(app)
+				.get('/broken.css')
+				.expect(500)
 				.end(done);
 		});
 		it('uses passed LESS options', function(done){
