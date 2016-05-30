@@ -1,6 +1,6 @@
 {
   "name": "less-express",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "express middleware for artifact free LESS compiling",
   "main": "index.js",
   "engines": {

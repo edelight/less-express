@@ -4,10 +4,6 @@
 
 > express middleware for artifact free LESS compiling
 
-#### Disclaimer
-
-This package is currently being developed. You can install it from npm, but things will probably not work correctly yet and everything still is subject to change.
-
 ### Why another LESS middleware?
 
 All existing LESS middlewares for express use a file based approach. This is great for big projects that require complex structures and high performance, yet this comes with two drawbacks: they generate build artifacts and complex setup. Sometimes you just want your app to serve a single CSS resource.
