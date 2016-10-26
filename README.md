@@ -1,6 +1,6 @@
 # less-express
 
-[![Build Status](https://travis-ci.org/m90/less-express.svg?branch=master)](https://travis-ci.org/m90/less-express)
+[![Build Status](https://travis-ci.org/edelight/less-express.svg?branch=master)](https://travis-ci.org/edelight/less-express)
 
 > express middleware for artifact free LESS compiling
 

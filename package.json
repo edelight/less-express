@@ -1,6 +1,6 @@
 {
   "name": "less-express",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "express middleware for artifact free LESS compiling",
   "main": "index.js",
   "engines": {
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/m90/less-express.git"
+    "url": "git+https://github.com/edelight/less-express.git"
   },
   "keywords": [
     "express",
@@ -22,9 +22,9 @@
   "author": "Frederik Ring <frederik.ring@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/m90/less-express/issues"
+    "url": "https://github.com/edelight/less-express/issues"
   },
-  "homepage": "https://github.com/m90/less-express#readme",
+  "homepage": "https://github.com/edelight/less-express#readme",
   "dependencies": {
     "less": "^2.7.1",
     "lru-cache": "^4.0.1",
