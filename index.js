@@ -17,6 +17,8 @@ function lessExpress(location, lessOptions, options){
 		paths: [_.initial(location.split('/')).join('/')]
 	}, globalLessOptions, lessOptions);
 	var localOptions = _.extend({}, globalOptions, options);
+	var localStale = localOptions.cache && localOptions.stale
+		, localStaleCache = {};
 	var localCache = localOptions.cache === false
 		? null
 		: (localOptions.cache || process.env.NODE_ENV === 'production')
@@ -24,6 +26,7 @@ function lessExpress(location, lessOptions, options){
 				length: function(){ return 1; }
 				, max: 100
 				, maxAge: _.isFinite(localOptions.cache) ? localOptions.cache : 0
+				, dispose: function(key, val){ if (!localStaleCache[key]) localStaleCache[key] = val; }
 			})
 			: null;
 
@@ -53,14 +56,14 @@ function lessExpress(location, lessOptions, options){
 			if (localCache) localCache.set(location, result);
 			return css;
 		})
-		.catch(function(err){
-			var lastBuild = localCache && localCache.get(location);
+		.catch(localStale ? function(err){
+			var lastBuild = localCache && (localCache.get(location) || localStaleCache[location]);
 			if (lastBuild){
 				return lastBuild.then(function(css){
 					res.set('Content-Type', 'text/css').send(css);
 				});
 			} else throw err;
-		})
+		} : null)
 		.catch(next);
 		return result;
 	};

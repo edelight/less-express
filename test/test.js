@@ -3,6 +3,7 @@ var assert = require('assert');
 var app = require('./fixtures/app');
 var _ = require('underscore');
 var lessExpress = require('./../index');
+var fs = require('fs');
 
 describe('less-express', function(){
 	describe('module', function(){
@@ -56,18 +57,23 @@ describe('less-express', function(){
 		});
 	});
 	describe('middleware', function(){
+		var expectMatch = /#ff00ff/;
+		after(function(done){
+			fs.unlink('./test/fixtures/stale.less', done);
+		});
+
 		it('compiles less into css when the file is found', function(done){
 			request(app)
 				.get('/styles.css')
 				.expect(200)
-				.expect(/#ff00ff/)
+				.expect(expectMatch)
 				.end(done);
 		});
 		it('can automatically handle files with relative imports', function(done){
 			request(app)
 				.get('/import.css')
 				.expect(200)
-				.expect(/#ff00ff/)
+				.expect(expectMatch)
 				.end(done);
 		});
 		it('returns 404 on inexistent files', function(done){
@@ -92,6 +98,24 @@ describe('less-express', function(){
 					}
 				})
 				.end(done);
+		});
+		it('returns last cached css if less encounter an error', function(done){
+			var endpoint = '/stale.css'
+				, requestApp = request(app);
+			fs.symlinkSync('simple.less', './test/fixtures/stale.less');
+			requestApp
+				.get(endpoint)
+				.expect(200)
+				.expect(expectMatch)
+				.end(function(){
+					fs.unlinkSync('./test/fixtures/stale.less');
+					fs.symlinkSync('broken.less', './test/fixtures/stale.less');
+					requestApp
+						.get(endpoint)
+						.expect(200)
+						.expect(expectMatch)
+						.end(done);
+				});
 		});
 	});
 });

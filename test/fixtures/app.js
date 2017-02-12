@@ -14,6 +14,7 @@ app.get('/minified.css', lessExpress('./test/fixtures/minified.less', {plugins: 
 app.get('/import.css', lessExpress('./test/fixtures/import.less'));
 app.get('/404.css', lessExpress('./test/fixtures/404.less'));
 app.get('/broken.css', lessExpress('./test/fixtures/broken.less'));
+app.get('/stale.css', lessExpress('./test/fixtures/stale.less', null, {cache: 1, stale: true}));
 
 app.use(function(err, req, res, next){ //eslint-disable-line no-unused-vars
 	res.status(err.status || 500);
