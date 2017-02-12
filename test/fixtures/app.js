@@ -15,6 +15,9 @@ app.get('/import.css', lessExpress('./test/fixtures/import.less'));
 app.get('/404.css', lessExpress('./test/fixtures/404.less'));
 app.get('/broken.css', lessExpress('./test/fixtures/broken.less'));
 app.get('/stale.css', lessExpress('./test/fixtures/stale.less', null, {cache: 1, stale: true}));
+app.get('/pass-thru.css', lessExpress('./test/fixtures/simple.less', null, {passThru: true}), function(req, res) {
+	res.status(202).send(res.locals.lessCss['./test/fixtures/simple.less']);
+});
 
 app.use(function(err, req, res, next){ //eslint-disable-line no-unused-vars
 	res.status(err.status || 500);

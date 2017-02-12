@@ -41,31 +41,36 @@ function lessExpress(location, lessOptions, options){
 			return next();
 		}
 
+		function sendOrNext(css){
+			if (localOptions.passThru){
+				res.locals.lessCss = res.locals.lessCss || {};
+				res.locals.lessCss[location] = css;
+				next();
+			} else {
+				res.set('Content-Type', 'text/css').send(css);
+			}
+		}
+
 		var result;
 		if (localCache){
 			result = localCache.get(location);
 			if (result){
-				return result.then(function(css){
-					res.set('Content-Type', 'text/css').send(css);
-				})
+				return result.then(sendOrNext)
 				.catch(next);
 			}
 		}
 		result = render(location, localLessOptions).then(function(css){
-			res.set('Content-Type', 'text/css').send(css);
+			sendOrNext(css);
 			if (localCache) localCache.set(location, result);
 			return css;
 		})
 		.catch(localStale ? function(err){
 			var lastBuild = localCache && (localCache.get(location) || localStaleCache[location]);
 			if (lastBuild){
-				return lastBuild.then(function(css){
-					res.set('Content-Type', 'text/css').send(css);
-				});
+				return lastBuild.then(sendOrNext);
 			} else throw err;
 		} : null)
 		.catch(next);
-		return result;
 	};
 
 }

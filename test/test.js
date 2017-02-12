@@ -117,5 +117,12 @@ describe('less-express', function(){
 						.end(done);
 				});
 		});
+		it('passes css to next middleware with passThru option', function(done){
+			request(app)
+				.get('/pass-thru.css')
+				.expect(202)
+				.expect(expectMatch)
+				.end(done);
+		});
 	});
 });
