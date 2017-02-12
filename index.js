@@ -17,7 +17,8 @@ function lessExpress(location, lessOptions, options){
 		paths: [_.initial(location.split('/')).join('/')]
 	}, globalLessOptions, lessOptions);
 	var localOptions = _.extend({}, globalOptions, options);
-	var localCache = localOptions.cache === false ? null
+	var localCache = localOptions.cache === false
+		? null
 		: (localOptions.cache || process.env.NODE_ENV === 'production')
 			? new LRU({
 				length: function(){ return 1; }
@@ -42,24 +43,23 @@ function lessExpress(location, lessOptions, options){
 			result = localCache.get(location);
 			if (result){
 				return result.then(function(css){
-					res.set('Content-Type', 'text/css');
-					res.send(css);
+					res.set('Content-Type', 'text/css').send(css);
 				})
 				.catch(next);
 			}
 		}
 		result = render(location, localLessOptions).then(function(css){
+			res.set('Content-Type', 'text/css').send(css);
 			if (localCache) localCache.set(location, result);
-			res.set('Content-Type', 'text/css');
-			res.send(css);
 			return css;
 		})
-		.catch(function (err) {
+		.catch(function(err){
 			var lastBuild = localCache && localCache.get(location);
-			if (lastBuild) return lastBuild.then(function (css) {
-				res.set('Content-Type', 'text/css').send(css);
-			});
-			else throw err;
+			if (lastBuild){
+				return lastBuild.then(function(css){
+					res.set('Content-Type', 'text/css').send(css);
+				});
+			} else throw err;
 		})
 		.catch(next);
 		return result;
