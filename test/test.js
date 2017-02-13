@@ -58,9 +58,6 @@ describe('less-express', function(){
 	});
 	describe('middleware', function(){
 		var expectMatch = /#ff00ff/;
-		after(function(done){
-			fs.unlink('./test/fixtures/stale.less', done);
-		});
 
 		it('compiles less into css when the file is found', function(done){
 			request(app)
@@ -114,7 +111,9 @@ describe('less-express', function(){
 						.get(endpoint)
 						.expect(200)
 						.expect(expectMatch)
-						.end(done);
+						.end(function(){
+							fs.unlink('./test/fixtures/stale.less', done);
+						});
 				});
 		});
 		it('passes css to next middleware with passThru option', function(done){

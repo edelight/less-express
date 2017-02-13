@@ -37,6 +37,15 @@ app.get('/css/app.css', lessExpress('./public/stylesheets/app.less', lessOptions
 
 - `cache`: TTL in milliseconds that compilation results will be cached. When `true` is passed the cache will keep the initial compilation result infinitely. By default the middleware uses infinite caching in production. If you want to disable this pass `false`.
 - `precompile`: Tell the middleware to precompile the stylesheet on application startup. This is happening per default in production and can be disabled by passing `false`. If you explicitly set `cache` to `false` this will do nothing.
+- `stale`: If `true` then the middleware will return a stale cache of the stylesheet, if available, when a compilation error is encountered. This is `false` by default. If you explicitly set `cache` to `false` this will do nothing.
+- `passThru`: If `true` then the middleware will not send the response and instead will assign the resulting stylesheet to `res.locals.lessCss` using the given location and call the next middleware. i.e
+```js
+lessExpress.options({passThru: true});
+app.get('/css/app.css', lessExpress('./public/stylesheets/app.less'), function (req, res, next) {
+    var css = res.locals.lessCss['./public/stylesheets/app.less'];
+});
+```
+This is useful for extra processing you may want to apply after compilation, but before sending the response. This is `false` by default.
 
 You can also set global configuration options that will be applied to all calls by using `#lessOptions` and `#options`:
 

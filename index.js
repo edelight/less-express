@@ -17,8 +17,7 @@ function lessExpress(location, lessOptions, options){
 		paths: [_.initial(location.split('/')).join('/')]
 	}, globalLessOptions, lessOptions);
 	var localOptions = _.extend({}, globalOptions, options);
-	var localStale = localOptions.cache && localOptions.stale
-		, localStaleCache = {};
+	var localStaleCache = {};
 	var localCache = localOptions.cache === false
 		? null
 		: (localOptions.cache || process.env.NODE_ENV === 'production')
@@ -64,7 +63,7 @@ function lessExpress(location, lessOptions, options){
 			if (localCache) localCache.set(location, result);
 			return css;
 		})
-		.catch(localStale ? function(err){
+		.catch(localOptions.cache && localOptions.stale ? function(err){
 			var lastBuild = localCache && (localCache.get(location) || localStaleCache[location]);
 			if (lastBuild){
 				return lastBuild.then(sendOrNext);
