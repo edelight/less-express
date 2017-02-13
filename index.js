@@ -63,12 +63,18 @@ function lessExpress(location, lessOptions, options){
 			if (localCache) localCache.set(location, result);
 			return css;
 		})
-		.catch(localOptions.cache && localOptions.stale ? function(err){
-			var lastBuild = localCache && (localCache.get(location) || localStaleCache[location]);
-			if (lastBuild){
-				return lastBuild.then(sendOrNext);
-			} else throw err;
-		} : null)
+		.catch(
+			localOptions.cache && localOptions.stale
+				? function(err){
+					var lastBuild = localCache && (localCache.get(location) || localStaleCache[location]);
+					if (lastBuild){
+						return lastBuild.then(sendOrNext);
+					} else {
+						throw err;
+					}
+				}
+				: null
+		)
 		.catch(next);
 	};
 

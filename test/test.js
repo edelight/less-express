@@ -96,32 +96,37 @@ describe('less-express', function(){
 				})
 				.end(done);
 		});
-		it('returns last cached css if less encounter an error', function(done){
-			var endpoint = '/stale.css'
-				, requestApp = request(app);
-			fs.symlinkSync('simple.less', './test/fixtures/stale.less');
-			requestApp
-				.get(endpoint)
-				.expect(200)
-				.expect(expectMatch)
-				.end(function(){
-					fs.unlinkSync('./test/fixtures/stale.less');
-					fs.symlinkSync('broken.less', './test/fixtures/stale.less');
-					requestApp
-						.get(endpoint)
-						.expect(200)
-						.expect(expectMatch)
-						.end(function(){
-							fs.unlink('./test/fixtures/stale.less', done);
-						});
-				});
-		});
 		it('passes css to next middleware with passThru option', function(done){
 			request(app)
 				.get('/pass-thru.css')
 				.expect(202)
 				.expect(expectMatch)
 				.end(done);
+		});
+		context('`stale` option', function(){
+			beforeEach(function(done){
+				fs.symlink('simple.less', './test/fixtures/stale.less', done);
+			});
+			afterEach(function(done){
+				fs.unlink('./test/fixtures/stale.less', done);
+			});
+			it('returns last cached css if less encounter an error', function(done){
+				var endpoint = '/stale.css';
+				var agent = request(app);
+				agent
+					.get(endpoint)
+					.expect(200)
+					.expect(expectMatch)
+					.end(function(){
+						fs.unlinkSync('./test/fixtures/stale.less');
+						fs.symlinkSync('broken.less', './test/fixtures/stale.less');
+						agent
+							.get(endpoint)
+							.expect(200)
+							.expect(expectMatch)
+							.end(done);
+					});
+			});
 		});
 	});
 });
